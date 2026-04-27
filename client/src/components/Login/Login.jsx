@@ -4,12 +4,17 @@ import {
   getAuth,
   signInWithPopup,
   signOut,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
 } from "firebase/auth";
 import app from "../../firebase/firebase.init";
 import { useState } from "react";
 
 const Login = () => {
   const [user, setUser] = useState();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const auth = getAuth(app);
   const googleProvider = new GoogleAuthProvider();
@@ -32,6 +37,48 @@ const Login = () => {
       setUser(loggedInUser);
     } catch (error) {
       console.error("Error during sign-in:", error.message);
+    }
+  };
+
+  const handleRegister = async () => {
+    try {
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      const loggedInUser = result.user;
+      console.log("User:", loggedInUser);
+
+      // Retrieve the token
+      const token = await loggedInUser.getIdToken(true);
+      console.log("Token:", token);
+
+      // Save token to localStorage (or secure storage)
+      localStorage.setItem("token", token);
+
+      // Set the user in your application state
+      setUser(loggedInUser);
+      setError('');
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      const loggedInUser = result.user;
+      console.log("User:", loggedInUser);
+
+      // Retrieve the token
+      const token = await loggedInUser.getIdToken(true);
+      console.log("Token:", token);
+
+      // Save token to localStorage (or secure storage)
+      localStorage.setItem("token", token);
+
+      // Set the user in your application state
+      setUser(loggedInUser);
+      setError('');
+    } catch (error) {
+      setError(error.message);
     }
   };
 
@@ -102,6 +149,21 @@ const Login = () => {
         </>
       ) : (
         <div>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button onClick={handleRegister}>Register</button>
+          <button onClick={handleLogin}>Log in</button>
+          {error && <p style={{ color: 'red' }}>{error}</p>}
           <button onClick={handleGoogleSignIn}>Google Login</button>
           {/* <button onClick={handleGithubSignIn}>Github Login</button> */}
         </div>
